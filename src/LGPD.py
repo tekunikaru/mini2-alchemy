@@ -71,7 +71,7 @@ with engine.connect() as conn:
 for user in users:
     print(str(user))
 
-def criar_csv(usuarios,local_de_exportacao="./export",separador = ",",continuar_exportacao=False):
+def criar_csv_por_ano(usuarios,local_de_exportacao="./export",separador = ",",continuar_exportacao=False):
     try:
         os.makedirs(local_de_exportacao)
     except FileExistsError:
@@ -86,6 +86,21 @@ def criar_csv(usuarios,local_de_exportacao="./export",separador = ",",continuar_
             for item in usuario:
                 row.append(str(item))
             csv.write(separador.join(row))
+            csv.write("\n")
+            csv.close()
+
+def criar_csv(usuarios,local_de_exportacao="./export",separador = ",",continuar_exportacao=False):
+    try:
+        os.makedirs(local_de_exportacao)
+    except FileExistsError:
+        if not continuar_exportacao:
+            raise FileExistsError("Uma pasta de exportação já existe. Renomeie-a ou mude-a de lugar.")
+
+    for usuario in usuarios:
+        # usuario = LGPD(usuario)
+        # nascimento:datetime = usuario[5]
+        with open(f'{local_de_exportacao}/todos.csv',"a",encoding="utf-8") as csv:
+            csv.write(separador.join(usuario[1:3]))
             csv.write("\n")
             csv.close()
 
