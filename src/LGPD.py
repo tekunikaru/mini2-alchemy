@@ -4,6 +4,9 @@ import time
 from functools import wraps
 from secret import dbuser, dbpassword, dbhost
 import os
+import logging
+
+logging.basicConfig(filename="./exec.log",encoding="utf-8",level=logging.DEBUG)
 
 def medir_tempo(func):
     """Decorator que mede o tempo de execução de uma função."""
@@ -13,7 +16,9 @@ def medir_tempo(func):
         resultado = func(*args, **kwargs)
         fim = time.perf_counter()     # tempo final
         duracao = fim - inicio
-        print(f"⏱ Função '{func.__name__}' executada em {duracao:.6f} segundos.")
+        mensagem = f"⏱ Função '{func.__name__}' executada em {duracao:.6f} segundos."
+        logging.log(logging.DEBUG,mensagem)
+        print(mensagem)
         return resultado
     return wrapper
 
@@ -34,9 +39,8 @@ usuarios = Table(
 
 metadata.create_all(engine)
 
-@medir_tempo
+#@medir_tempo
 def LGPD(row):
-    print(type(row))
     newrow = []
     for key in row._mapping:
         match key:
@@ -71,6 +75,7 @@ with engine.connect() as conn:
 for user in users:
     print(str(user))
 
+@medir_tempo
 def criar_csv_por_ano(usuarios,local_de_exportacao="./export",separador = ",",continuar_exportacao=False):
     try:
         os.makedirs(local_de_exportacao)
@@ -88,7 +93,7 @@ def criar_csv_por_ano(usuarios,local_de_exportacao="./export",separador = ",",co
             csv.write(separador.join(row))
             csv.write("\n")
             csv.close()
-
+@medir_tempo
 def criar_csv(usuarios,local_de_exportacao="./export",separador = ",",continuar_exportacao=False):
     try:
         os.makedirs(local_de_exportacao)
@@ -109,4 +114,8 @@ with engine.connect() as conn:
     result = conn.execute(text("SELECT * FROM atividade2.usuarios"))
     for row in result:
         users.append(row)
-    criar_csv(users)
+
+    print("\nExecutando Atividade 2")
+    criar_csv_por_ano(users)
+    print("\nExecutando Atividade 3")
+    criar_csv(users,continuar_exportacao=True)
