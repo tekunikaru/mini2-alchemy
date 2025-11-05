@@ -3,6 +3,7 @@ from datetime import datetime
 import time
 from functools import wraps
 from secret import dbuser, dbpassword, dbhost
+import os
 
 def medir_tempo(func):
     """Decorator que mede o tempo de execução de uma função."""
@@ -68,4 +69,29 @@ with engine.connect() as conn:
         users.append(row)
 
 for user in users:
-    print(user)
+    print(str(user))
+
+def criar_csv(usuarios,local_de_exportacao="./export",separador = ",",continuar_exportacao=False):
+    try:
+        os.makedirs(local_de_exportacao)
+    except FileExistsError:
+        if not continuar_exportacao:
+            raise FileExistsError("Uma pasta de exportação já existe. Renomeie-a ou mude-a de lugar.")
+
+    for usuario in usuarios:
+        usuario = LGPD(usuario)
+        nascimento:datetime = usuario[5]
+        with open(f'{local_de_exportacao}/{str(nascimento.year)}.csv',"a",encoding="utf-8") as csv:
+            row = []
+            for item in usuario:
+                row.append(str(item))
+            csv.write(separador.join(row))
+            csv.write("\n")
+            csv.close()
+
+with engine.connect() as conn:
+    users = []
+    result = conn.execute(text("SELECT * FROM atividade2.usuarios"))
+    for row in result:
+        users.append(row)
+    criar_csv(users)
